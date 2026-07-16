@@ -4,7 +4,7 @@ using Socialize.Application.Common.Dtos;
 
 namespace Socialize.Infrastructure.Realtime;
 
-public class SignalRNotificationPublisher : INotificationPublisher
+public class SignalRNotificationPublisher : IUserNotificationPublisher
 {
     private readonly IHubContext<NotificationsHub> _hubContext;
 

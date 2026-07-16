@@ -14,9 +14,9 @@ public record LikePostCommand(Guid UserId, Guid PostId) : IRequest;
 public class LikePostCommandHandler : IRequestHandler<LikePostCommand>
 {
     private readonly IApplicationDbContext _db;
-    private readonly INotificationPublisher _notificationPublisher;
+    private readonly IUserNotificationPublisher _notificationPublisher;
 
-    public LikePostCommandHandler(IApplicationDbContext db, INotificationPublisher notificationPublisher)
+    public LikePostCommandHandler(IApplicationDbContext db, IUserNotificationPublisher notificationPublisher)
     {
         _db = db;
         _notificationPublisher = notificationPublisher;

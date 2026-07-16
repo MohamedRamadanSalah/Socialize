@@ -24,7 +24,7 @@ public static class DependencyInjection
         services.AddSingleton<ITokenService, TokenService>();
 
         services.AddScoped<IFileStorage, LocalFileStorage>();
-        services.AddScoped<INotificationPublisher, SignalRNotificationPublisher>();
+        services.AddScoped<IUserNotificationPublisher, SignalRNotificationPublisher>();
         services.AddScoped<ISearchService, PostgresSearchService>();
 
         services.AddSignalR();

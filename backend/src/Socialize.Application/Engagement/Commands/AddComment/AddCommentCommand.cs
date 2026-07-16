@@ -23,9 +23,9 @@ public class AddCommentCommandValidator : AbstractValidator<AddCommentCommand>
 public class AddCommentCommandHandler : IRequestHandler<AddCommentCommand, CommentDto>
 {
     private readonly IApplicationDbContext _db;
-    private readonly INotificationPublisher _notificationPublisher;
+    private readonly IUserNotificationPublisher _notificationPublisher;
 
-    public AddCommentCommandHandler(IApplicationDbContext db, INotificationPublisher notificationPublisher)
+    public AddCommentCommandHandler(IApplicationDbContext db, IUserNotificationPublisher notificationPublisher)
     {
         _db = db;
         _notificationPublisher = notificationPublisher;

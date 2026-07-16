@@ -15,9 +15,9 @@ public record FollowCommand(Guid FollowerId, Guid FolloweeId) : IRequest;
 public class FollowCommandHandler : IRequestHandler<FollowCommand>
 {
     private readonly IApplicationDbContext _db;
-    private readonly INotificationPublisher _notificationPublisher;
+    private readonly IUserNotificationPublisher _notificationPublisher;
 
-    public FollowCommandHandler(IApplicationDbContext db, INotificationPublisher notificationPublisher)
+    public FollowCommandHandler(IApplicationDbContext db, IUserNotificationPublisher notificationPublisher)
     {
         _db = db;
         _notificationPublisher = notificationPublisher;

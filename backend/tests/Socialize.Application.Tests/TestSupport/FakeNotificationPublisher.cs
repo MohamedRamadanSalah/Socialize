@@ -3,7 +3,7 @@ using Socialize.Application.Common.Dtos;
 
 namespace Socialize.Application.Tests.TestSupport;
 
-public class FakeNotificationPublisher : INotificationPublisher
+public class FakeNotificationPublisher : IUserNotificationPublisher
 {
     public List<(Guid RecipientId, NotificationDto Notification)> Published { get; } = new();
 
