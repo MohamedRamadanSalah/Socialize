@@ -128,6 +128,8 @@ try
 
     app.UseSerilogRequestLogging();
 
+    app.UseMiddleware<Socialize.Api.Middleware.ExceptionHandlingMiddleware>();
+
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {

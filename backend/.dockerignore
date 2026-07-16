@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+.git/
+.gitignore
+.dockerignore
+src/Socialize.Api/wwwroot/uploads/**
+!src/Socialize.Api/wwwroot/uploads/**/.gitkeep
+*.user
+*.suo

@@ -13,6 +13,11 @@ namespace Socialize.Infrastructure.Search;
 /// PostgreSQL full-text search (research R10). Kept out of the Application layer because it uses
 /// provider-specific tsvector/tsquery/ts_rank constructs. Pagination is keyset on (rank, CreatedAt, Id)
 /// since ranked results need the rank value as part of the seek predicate, not just CreatedAt/Id.
+/// EF.Functions.WebSearchToTsQuery must appear inline inside each LINQ expression tree (not hoisted
+/// to a local variable) — calling it outside a translated query throws at runtime. Post search is a
+/// two-step fetch: rank+page a lightweight {Id, CreatedAt, Rank} projection first, then load the full
+/// Post entities (with Include) for just that page's ids — Include cannot follow a Select into an
+/// anonymous type, so the two cannot be combined in one query.
 /// </summary>
 public class PostgresSearchService : ISearchService
 {
@@ -25,10 +30,8 @@ public class PostgresSearchService : ISearchService
 
     public async Task<CursorPage<UserSummaryDto>> SearchUsersAsync(Guid callerId, string query, string? cursor, int limit, CancellationToken cancellationToken = default)
     {
-        var tsQuery = EF.Functions.WebSearchToTsQuery("english", query);
-
         var candidates = _db.Users
-            .Where(u => EF.Property<NpgsqlTsVector>(u, "SearchVector").Matches(tsQuery))
+            .Where(u => EF.Property<NpgsqlTsVector>(u, "SearchVector").Matches(EF.Functions.WebSearchToTsQuery("english", query)))
             .Select(u => new
             {
                 u.Id,
@@ -36,7 +39,7 @@ public class PostgresSearchService : ISearchService
                 u.DisplayName,
                 u.AvatarUrl,
                 u.CreatedAt,
-                Rank = EF.Property<NpgsqlTsVector>(u, "SearchVector").Rank(tsQuery)
+                Rank = EF.Property<NpgsqlTsVector>(u, "SearchVector").Rank(EF.Functions.WebSearchToTsQuery("english", query))
             });
 
         if (!RankCursor.TryDecode(cursor, out var seek))
@@ -71,14 +74,14 @@ public class PostgresSearchService : ISearchService
 
     public async Task<CursorPage<PostDto>> SearchPostsAsync(Guid callerId, string query, string? cursor, int limit, CancellationToken cancellationToken = default)
     {
-        var tsQuery = EF.Functions.WebSearchToTsQuery("english", query);
-
+        // Step 1: rank + page over a lightweight projection (no Include here).
         var candidates = _db.Posts
-            .Where(p => EF.Property<NpgsqlTsVector>(p, "SearchVector").Matches(tsQuery))
+            .Where(p => EF.Property<NpgsqlTsVector>(p, "SearchVector").Matches(EF.Functions.WebSearchToTsQuery("english", query)))
             .Select(p => new
             {
-                Post = p,
-                Rank = EF.Property<NpgsqlTsVector>(p, "SearchVector").Rank(tsQuery)
+                p.Id,
+                p.CreatedAt,
+                Rank = EF.Property<NpgsqlTsVector>(p, "SearchVector").Rank(EF.Functions.WebSearchToTsQuery("english", query))
             });
 
         if (!RankCursor.TryDecode(cursor, out var seek))
@@ -91,28 +94,36 @@ public class PostgresSearchService : ISearchService
             var (rank, createdAt, id) = seek.Value;
             candidates = candidates.Where(c =>
                 c.Rank < rank ||
-                (c.Rank == rank && c.Post.CreatedAt < createdAt) ||
-                (c.Rank == rank && c.Post.CreatedAt == createdAt && c.Post.Id.CompareTo(id) < 0));
+                (c.Rank == rank && c.CreatedAt < createdAt) ||
+                (c.Rank == rank && c.CreatedAt == createdAt && c.Id.CompareTo(id) < 0));
         }
 
-        var page = await candidates
-            .OrderByDescending(c => c.Rank).ThenByDescending(c => c.Post.CreatedAt).ThenByDescending(c => c.Post.Id)
+        var rankedPage = await candidates
+            .OrderByDescending(c => c.Rank).ThenByDescending(c => c.CreatedAt).ThenByDescending(c => c.Id)
             .Take(limit + 1)
-            .Include(c => c.Post.Author)
-            .Include(c => c.Post.Images)
-            .Include(c => c.Post.Likes)
-            .Include(c => c.Post.Comments)
             .ToListAsync(cancellationToken);
 
-        var hasMore = page.Count > limit;
-        var items = page.Take(limit).ToList();
-        var nextCursor = hasMore && items.Count > 0
-            ? RankCursor.Encode(items[^1].Rank, items[^1].Post.CreatedAt, items[^1].Post.Id)
+        var hasMore = rankedPage.Count > limit;
+        var rankedItems = rankedPage.Take(limit).ToList();
+        var nextCursor = hasMore && rankedItems.Count > 0
+            ? RankCursor.Encode(rankedItems[^1].Rank, rankedItems[^1].CreatedAt, rankedItems[^1].Id)
             : null;
 
-        var dtos = items.Select(i =>
+        // Step 2: load full entities (with Include) for just this page's ids, then re-order to
+        // match the rank order computed in step 1 (a plain IN-list query has no ORDER BY rank).
+        var ids = rankedItems.Select(r => r.Id).ToList();
+        var posts = await _db.Posts
+            .Where(p => ids.Contains(p.Id))
+            .Include(p => p.Author)
+            .Include(p => p.Images)
+            .Include(p => p.Likes)
+            .Include(p => p.Comments)
+            .ToListAsync(cancellationToken);
+
+        var postsById = posts.ToDictionary(p => p.Id);
+        var dtos = rankedItems.Select(r =>
         {
-            var p = i.Post;
+            var p = postsById[r.Id];
             return new PostDto(
                 p.Id,
                 new UserSummaryDto(p.Author!.Id, p.Author.UserName, p.Author.DisplayName, p.Author.AvatarUrl),
