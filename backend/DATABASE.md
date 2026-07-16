@@ -129,23 +129,23 @@ shows the actual code path (persist-then-push, and the self-action skip) rather 
 
 ```mermaid
 sequenceDiagram
-    actor Actor as Actor (Bob)
+    actor Bob as Bob (actor)
     participant API as API Handler<br/>(Like / Comment / Follow)
     participant DB as PostgreSQL
     participant Hub as SignalR Hub
-    actor Recipient as Recipient (Alice)
+    actor Alice as Alice (recipient)
 
-    Actor->>API: POST /posts/{id}/like
+    Bob->>API: POST /posts/{id}/like
     API->>DB: Insert Like row
-    alt Actor is NOT the post's author
+    alt Bob is NOT the post's author
         API->>DB: Insert Notification row
         API->>Hub: PublishAsync(recipientId, notification)
-        Hub-->>Recipient: "ReceiveNotification" (if connected)
-    else Actor IS the post's author (self-like)
+        Hub-->>Alice: "ReceiveNotification" (if connected)
+    else Bob IS the post's author (self-like)
         API-->>API: Skip notification entirely
     end
-    API-->>Actor: 204 No Content
-    Recipient->>API: GET /notifications (persisted regardless of live delivery)
+    API-->>Bob: 204 No Content
+    Alice->>API: GET /notifications (persisted regardless of live delivery)
 ```
 
 ## Full request shape reference
