@@ -1,0 +1,536 @@
+openapi: 3.0.3
+info:
+  title: Socialize Backend API
+  version: 1.0.0
+  description: >
+    Production-realistic social media backend for Flutter integration training.
+    REST + JSON over HTTP, JWT bearer auth (15-min access, 7-day rotating refresh),
+    cursor pagination on all lists, and a SignalR notifications hub at /hubs/notifications
+    (JWT via ?access_token= query string). This contract is the source of truth for
+    the API surface; concrete DTOs live in Socialize.Application.
+servers:
+  - url: http://localhost:8080
+    description: Local Docker Compose
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Posts
+  - name: Engagement
+  - name: Notifications
+  - name: Search
+  - name: System
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Liveness/readiness (API + database reachability)
+      security: []
+      responses:
+        '200': { description: Healthy }
+        '503': { description: Unhealthy (database unreachable) }
+
+  # ---------------- Auth ----------------
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResponse' } } } }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in with credentials
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResponse' } } } }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Exchange a refresh token for a new access+refresh pair (rotation)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResponse' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke the current refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '204': { description: Logged out }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get the authenticated user's own account
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/UserProfile' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ---------------- Users ----------------
+  /api/users/{username}:
+    get:
+      tags: [Users]
+      summary: Get a public profile by username
+      parameters:
+        - { name: username, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/UserProfile' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/users/me:
+    put:
+      tags: [Users]
+      summary: Update own display name and/or bio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProfileRequest' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/UserProfile' } } } }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/users/me/avatar:
+    post:
+      tags: [Users]
+      summary: Upload/replace own avatar image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/UserProfile' } } } }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/users/{id}/follow:
+    post:
+      tags: [Users]
+      summary: Follow a user
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '204': { description: Followed (idempotent) }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Users]
+      summary: Unfollow a user
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '204': { description: Unfollowed (idempotent) }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/users/{id}/followers:
+    get:
+      tags: [Users]
+      summary: List a user's followers (cursor-paginated)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/UserSummaryPage' } } } }
+
+  /api/users/{id}/following:
+    get:
+      tags: [Users]
+      summary: List who a user follows (cursor-paginated)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/UserSummaryPage' } } } }
+
+  # ---------------- Posts ----------------
+  /api/posts:
+    post:
+      tags: [Posts]
+      summary: Create a post with text and up to 4 images
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string, maxLength: 2000 }
+                images:
+                  type: array
+                  maxItems: 4
+                  items: { type: string, format: binary }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Post' } } } }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/posts/{id}:
+    get:
+      tags: [Posts]
+      summary: Get a single post (with author and images)
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Post' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Posts]
+      summary: Edit own post text (sets edited flag)
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EditPostRequest' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Post' } } } }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Posts]
+      summary: Delete own post
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '204': { description: Deleted }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/feed:
+    get:
+      tags: [Posts]
+      summary: Home feed — posts from followed users, newest first (cursor-paginated)
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PostPage' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/users/{id}/posts:
+    get:
+      tags: [Posts]
+      summary: List a user's posts (cursor-paginated)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PostPage' } } } }
+
+  # ---------------- Engagement ----------------
+  /api/posts/{id}/like:
+    post:
+      tags: [Engagement]
+      summary: Like a post (idempotent)
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '204': { description: Liked }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Engagement]
+      summary: Unlike a post (idempotent)
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '204': { description: Unliked }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/posts/{id}/comments:
+    post:
+      tags: [Engagement]
+      summary: Add a comment to a post
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddCommentRequest' }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Comment' } } } }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    get:
+      tags: [Engagement]
+      summary: List a post's comments (cursor-paginated)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CommentPage' } } } }
+
+  /api/comments/{id}:
+    delete:
+      tags: [Engagement]
+      summary: Delete own comment
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '204': { description: Deleted }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ---------------- Notifications ----------------
+  /api/notifications:
+    get:
+      tags: [Notifications]
+      summary: List own notifications (cursor-paginated)
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/NotificationPage' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/notifications/{id}/read:
+    post:
+      tags: [Notifications]
+      summary: Mark a single notification as read
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '204': { description: Marked read }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/notifications/read-all:
+    post:
+      tags: [Notifications]
+      summary: Mark all own notifications as read
+      responses:
+        '204': { description: All marked read }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ---------------- Search ----------------
+  /api/search/users:
+    get:
+      tags: [Search]
+      summary: Full-text search users (relevance-ranked, cursor-paginated)
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/UserSummaryPage' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/search/posts:
+    get:
+      tags: [Search]
+      summary: Full-text search posts (relevance-ranked, cursor-paginated)
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PostPage' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  security:
+    - bearerAuth: []
+
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque keyset cursor from a prior page's nextCursor
+      schema: { type: string, nullable: true }
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: Page size (default 20, max 50)
+      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+
+  responses:
+    ValidationError:
+      description: Validation failed
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } }
+    Unauthorized:
+      description: Missing/invalid/expired credential
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } }
+    Forbidden:
+      description: Authenticated but not allowed (ownership)
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } }
+    NotFound:
+      description: Resource not found
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } }
+    Conflict:
+      description: Conflict (e.g., username/email already taken)
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } }
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [userName, email, password, displayName]
+      properties:
+        userName: { type: string, minLength: 3, maxLength: 30, example: alice }
+        email: { type: string, format: email, example: alice@example.com }
+        password: { type: string, minLength: 8, example: "P@ssw0rd123" }
+        displayName: { type: string, minLength: 1, maxLength: 50, example: "Alice Anderson" }
+    LoginRequest:
+      type: object
+      required: [userNameOrEmail, password]
+      properties:
+        userNameOrEmail: { type: string, example: alice }
+        password: { type: string, example: "P@ssw0rd123" }
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string, example: "b3f1c2...opaque" }
+    AuthResponse:
+      type: object
+      properties:
+        accessToken: { type: string, description: "JWT, 15-min lifetime" }
+        refreshToken: { type: string, description: "Opaque, 7-day lifetime, rotated on refresh" }
+        accessTokenExpiresAt: { type: string, format: date-time, example: "2026-07-16T14:22:00Z" }
+        user: { $ref: '#/components/schemas/UserProfile' }
+    UpdateProfileRequest:
+      type: object
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 50 }
+        bio: { type: string, maxLength: 300 }
+    EditPostRequest:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string, minLength: 1, maxLength: 2000 }
+    AddCommentRequest:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string, minLength: 1, maxLength: 1000 }
+    UserProfile:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        userName: { type: string, example: alice }
+        displayName: { type: string, example: "Alice Anderson" }
+        bio: { type: string, nullable: true }
+        avatarUrl: { type: string, nullable: true, example: "/uploads/avatars/abc.jpg" }
+        followerCount: { type: integer, example: 12 }
+        followingCount: { type: integer, example: 8 }
+        isFollowedByMe: { type: boolean, description: "Relative to the authenticated caller" }
+        createdAt: { type: string, format: date-time }
+    UserSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        userName: { type: string }
+        displayName: { type: string }
+        avatarUrl: { type: string, nullable: true }
+    Post:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        author: { $ref: '#/components/schemas/UserSummary' }
+        content: { type: string }
+        imageUrls: { type: array, items: { type: string }, example: ["/uploads/posts/x1.jpg"] }
+        likeCount: { type: integer, example: 3 }
+        commentCount: { type: integer, example: 1 }
+        likedByMe: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        editedAt: { type: string, format: date-time, nullable: true, description: "Non-null if edited" }
+    Comment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        postId: { type: string, format: uuid }
+        author: { $ref: '#/components/schemas/UserSummary' }
+        content: { type: string }
+        createdAt: { type: string, format: date-time }
+    Notification:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        type: { type: string, enum: [Like, Comment, Follow] }
+        actor: { $ref: '#/components/schemas/UserSummary' }
+        entityId: { type: string, format: uuid, nullable: true }
+        isRead: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    ProblemDetails:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string, example: "Validation failed" }
+        status: { type: integer, example: 400 }
+        detail: { type: string, nullable: true }
+        errors:
+          type: object
+          nullable: true
+          additionalProperties: { type: array, items: { type: string } }
+          example: { "email": ["Email is already taken."] }
+    UserSummaryPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/UserSummary' } }
+        nextCursor: { type: string, nullable: true }
+    PostPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Post' } }
+        nextCursor: { type: string, nullable: true }
+    CommentPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Comment' } }
+        nextCursor: { type: string, nullable: true }
+    NotificationPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Notification' } }
+        nextCursor: { type: string, nullable: true }
+
+# ---------------- SignalR hub (contract note; not an HTTP path) ----------------
+# Hub URL: /hubs/notifications
+# Auth:    JWT access token via ?access_token= query string (WebSocket handshake).
+# Server -> client method: "ReceiveNotification" with a Notification payload (see schema above).
+# Delivery: to Clients.User(recipientId); best-effort live push in addition to persistence.

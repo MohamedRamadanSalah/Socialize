@@ -8,6 +8,16 @@
 
 **Input**: User description: "we need to create real backend to make the strong training flutter devs to integrate with it so use this file to understand the idea of the project and what we do PLAN.md"
 
+## Clarifications
+
+### Session 2026-07-16
+
+- Q: What should the home feed (GET /feed) contain? → A: Followed users only (posts authored by users the viewer follows, newest first)
+- Q: What image-upload limits should the backend enforce per post? → A: Up to 4 images per post, max ~5 MB each, allowed types JPEG/PNG/WebP
+- Q: What lifetimes should the access and refresh credentials have? → A: Access credential 15 minutes, refresh credential 7 days
+- Q: How should user/post search match the query text? → A: Full-text search (relevance-ranked, tokenized)
+- Q: Should users be able to edit posts and comments after creating them? → A: Edit posts only (post text editable by owner; comments immutable once posted)
+
 ## User Scenarios & Testing *(mandatory)*
 
 This backend serves two audiences at once:
@@ -19,7 +29,7 @@ The user stories below are prioritized so that each one, delivered on its own, g
 
 ### User Story 1 - Account creation and secure session (Priority: P1)
 
-A new person registers with a username, email, and password, then logs in and receives a short-lived access credential plus a longer-lived refresh credential. When the access credential expires, the client silently exchanges the refresh credential for a fresh pair without forcing the user to log in again; logging out invalidates the refresh credential.
+A new person registers with a username, email, and password, then logs in and receives a short-lived access credential (15-minute lifetime) plus a longer-lived refresh credential (7-day lifetime). When the access credential expires, the client silently exchanges the refresh credential for a fresh pair without forcing the user to log in again; logging out invalidates the refresh credential.
 
 **Why this priority**: Nothing else in the product is reachable without an authenticated session. It is also the single most valuable integration lesson for trainees — implementing a token-refresh interceptor is a core real-world client skill.
 
@@ -28,7 +38,7 @@ A new person registers with a username, email, and password, then logs in and re
 **Acceptance Scenarios**:
 
 1. **Given** no existing account, **When** a person registers with valid unique username/email and a password meeting the strength policy, **Then** the account is created and they can immediately log in.
-2. **Given** a registered account, **When** they log in with correct credentials, **Then** they receive an access credential and a refresh credential.
+2. **Given** a registered account, **When** they log in with correct credentials, **Then** they receive an access credential (15-minute lifetime) and a refresh credential (7-day lifetime).
 3. **Given** an expired access credential and a valid refresh credential, **When** the client requests a refresh, **Then** a new access + refresh pair is issued and the previous refresh credential is invalidated (rotation).
 4. **Given** a valid session, **When** the user logs out, **Then** the refresh credential can no longer be used to obtain new access.
 5. **Given** a request to a protected endpoint without a valid access credential, **When** the request is made, **Then** it is rejected as unauthorized.
@@ -72,25 +82,26 @@ An authenticated user views another user's public profile, updates their own pro
 
 ### User Story 4 - Posting and the feed (Priority: P2)
 
-An authenticated user creates a post containing text and optionally one or more images, views a single post, deletes their own post, browses a paginated home feed, and views all posts authored by a specific user.
+An authenticated user creates a post containing text and optionally one or more images, views a single post, edits the text of their own post, deletes their own post, browses a paginated home feed (posts authored by users they follow, newest first), and views all posts authored by a specific user.
 
 **Why this priority**: Content creation and consumption is the core of a social product and the richest integration surface for trainees (multipart image upload, cursor pagination, list/detail navigation). It depends on accounts (P1) and is enriched by the social graph (P3).
 
-**Independent Test**: Create a text-plus-image post, retrieve it by id, page through the feed and confirm the new post appears, list the author's posts, then delete the post as its author and confirm it is gone; confirm a non-author cannot delete it.
+**Independent Test**: Create a text-plus-image post, retrieve it by id, edit its text as the author, page through the feed and confirm posts from followed users appear, list the author's posts, then delete the post as its author and confirm it is gone; confirm a non-author can neither edit nor delete it.
 
 **Acceptance Scenarios**:
 
-1. **Given** an authenticated user, **When** they submit a post with text and image(s), **Then** the post is created with the images attached and is retrievable by id.
+1. **Given** an authenticated user, **When** they submit a post with text and up to four image(s), **Then** the post is created with the images attached and is retrievable by id.
 2. **Given** an existing post, **When** any authenticated user requests it by id, **Then** the post with its author and images is returned.
-3. **Given** a populated feed, **When** a user requests it with a pagination cursor, **Then** a bounded page of posts is returned along with a cursor for the next page.
-4. **Given** a user's own post, **When** they delete it, **Then** it is removed; **When** a different user attempts to delete it, **Then** the request is refused.
-5. **Given** a user id, **When** that user's posts are requested, **Then** their posts are returned with cursor pagination.
+3. **Given** a user following one or more authors, **When** they request the feed with a pagination cursor, **Then** a bounded page of posts from followed users (newest first) is returned along with a cursor for the next page.
+4. **Given** a user's own post, **When** they edit its text, **Then** the updated text is persisted and the post is flagged as edited; **When** a different user attempts to edit it, **Then** the request is refused.
+5. **Given** a user's own post, **When** they delete it, **Then** it is removed; **When** a different user attempts to delete it, **Then** the request is refused.
+6. **Given** a user id, **When** that user's posts are requested, **Then** their posts are returned with cursor pagination.
 
 ---
 
 ### User Story 5 - Engagement: likes and comments (Priority: P3)
 
-An authenticated user likes and unlikes a post, adds comments to a post, reads a post's comments, and deletes their own comment.
+An authenticated user likes and unlikes a post, adds comments to a post, reads a post's comments, and deletes their own comment. Comments cannot be edited once posted.
 
 **Why this priority**: Engagement deepens the product and adds notification triggers, but the app is already demonstrable without it. It depends on posts (P4).
 
@@ -121,14 +132,14 @@ When someone likes a user's post, comments on it, or follows the user, the recip
 
 ### User Story 7 - Search (Priority: P4)
 
-An authenticated user searches for users by name/username and for posts by text content.
+An authenticated user searches for users by name/username and for posts by text content, receiving relevance-ranked results.
 
 **Why this priority**: Search improves discoverability and rounds out the demo, but is the least critical to a first integration milestone.
 
 **Acceptance Scenarios**:
 
-1. **Given** existing users, **When** a user searches with a query string, **Then** matching users are returned with cursor pagination.
-2. **Given** existing posts, **When** a user searches post content, **Then** matching posts are returned with cursor pagination.
+1. **Given** existing users, **When** a user searches with a query string, **Then** matching users are returned relevance-ranked with cursor pagination.
+2. **Given** existing posts, **When** a user searches post content, **Then** matching posts are returned relevance-ranked with cursor pagination.
 3. **Given** a query that matches nothing, **When** the search runs, **Then** an empty result set is returned (not an error).
 
 ---
@@ -137,13 +148,14 @@ An authenticated user searches for users by name/username and for posts by text 
 
 - Registration with an already-taken username or email is rejected with a clear, distinguishable error.
 - A refresh credential that has been rotated, revoked (via logout), or expired cannot be used to obtain new access.
-- A malformed or oversized image upload, or an unsupported file type, is rejected with a clear error rather than corrupting the post.
+- An image upload is rejected with a clear error — rather than corrupting the post — when it exceeds 4 images per post, exceeds ~5 MB per image, or is not one of JPEG/PNG/WebP.
 - Requesting a profile, post, comment, or notification that does not exist returns a clear not-found result.
-- Acting on a resource you do not own (deleting another user's post/comment) is refused as forbidden.
+- Acting on a resource you do not own (editing or deleting another user's post, deleting another user's comment) is refused as forbidden.
 - Following yourself, or liking/commenting on a deleted post, is handled gracefully.
 - A pagination cursor that is invalid or points past the end returns an empty page rather than an error.
 - A real-time client connecting without or with an expired credential is rejected and does not receive other users' notifications.
 - Deleting a post removes its associated images, comments, and likes without leaving orphaned data.
+- A feed request from a user who follows no one returns an empty page (not an error).
 
 ## Requirements *(mandatory)*
 
@@ -151,7 +163,7 @@ An authenticated user searches for users by name/username and for posts by text 
 
 **Authentication & Sessions**
 - **FR-001**: System MUST allow a person to register with a unique username, unique email, and a password, storing the password only in a non-reversible (hashed) form.
-- **FR-002**: System MUST authenticate a registered user by credentials and issue a short-lived access credential and a longer-lived refresh credential on success.
+- **FR-002**: System MUST authenticate a registered user by credentials and issue an access credential with a 15-minute lifetime and a refresh credential with a 7-day lifetime on success.
 - **FR-003**: System MUST allow a client to exchange a valid refresh credential for a new access + refresh pair, invalidating (rotating) the previously issued refresh credential.
 - **FR-004**: System MUST allow a user to log out, after which their refresh credential can no longer be used.
 - **FR-005**: System MUST reject any request to a protected resource that lacks a valid access credential.
@@ -167,8 +179,9 @@ An authenticated user searches for users by name/username and for posts by text 
 - **FR-011**: Users MUST be able to create a post with text and optionally one or more attached images.
 - **FR-012**: Users MUST be able to retrieve a single post (with author and images) by its identifier.
 - **FR-013**: Users MUST be able to delete their own posts, and MUST NOT be able to delete posts they do not own.
-- **FR-014**: System MUST provide a paginated home feed and a paginated list of a given user's posts, both using cursor-based pagination.
-- **FR-015**: System MUST accept image uploads, validate file type and size, and reject invalid uploads with a clear error.
+- **FR-014**: System MUST provide a paginated home feed containing posts authored by the users the viewer follows, ordered newest first, using cursor-based pagination; and a paginated list of a given user's posts, also using cursor-based pagination.
+- **FR-015**: System MUST accept image uploads and validate them, rejecting with a clear error any upload that exceeds 4 images per post, exceeds ~5 MB per image, or is not of type JPEG, PNG, or WebP.
+- **FR-030**: Users MUST be able to edit the text of their own posts (with the post flagged as edited) and MUST NOT be able to edit posts they do not own. Comments are immutable once posted (no edit capability).
 
 **Engagement**
 - **FR-016**: Users MUST be able to like and unlike a post, with likes de-duplicated per user/post.
@@ -182,7 +195,7 @@ An authenticated user searches for users by name/username and for posts by text 
 - **FR-022**: Users MUST be able to list their notifications (cursor-paginated) and mark a single notification or all notifications as read.
 
 **Search**
-- **FR-023**: Users MUST be able to search for users and for posts by text query, with cursor-paginated results and graceful empty results.
+- **FR-023**: Users MUST be able to search for users and for posts by text query using full-text (tokenized, relevance-ranked) matching, with cursor-paginated results and graceful empty results.
 
 **Cross-cutting**
 - **FR-024**: System MUST validate all incoming request data and return clear, structured, consistent error responses distinguishing validation, unauthorized, forbidden, and not-found conditions.
@@ -195,12 +208,12 @@ An authenticated user searches for users by name/username and for posts by text 
 ### Key Entities *(include if feature involves data)*
 
 - **User**: A registered person. Key attributes: username, email, hashed password, display name, bio, avatar reference, creation time. Central to every other entity.
-- **Refresh Credential**: A longer-lived token bound to a user, with an expiry and a revoked state; supports rotation and logout.
-- **Post**: Text content authored by a user at a point in time, optionally with attached images.
-- **Post Image**: An image attached to a post (reference/location + owning post).
-- **Comment**: Text authored by a user on a specific post at a point in time.
+- **Refresh Credential**: A longer-lived token (7-day lifetime) bound to a user, with an expiry and a revoked state; supports rotation and logout.
+- **Post**: Text content authored by a user at a point in time, optionally with attached images; editable text with an edited indicator.
+- **Post Image**: An image attached to a post (reference/location + owning post); up to 4 per post, JPEG/PNG/WebP, ~5 MB max each.
+- **Comment**: Text authored by a user on a specific post at a point in time; immutable once posted.
 - **Like**: A user's like of a specific post; unique per user/post pair.
-- **Follow**: A directed relationship from a follower to a followee; unique per pair.
+- **Follow**: A directed relationship from a follower to a followee; unique per pair; drives home-feed composition.
 - **Notification**: A record that something concerning a recipient occurred, with an actor, a type (like/comment/follow), a reference to the related entity, a read/unread state, and a creation time.
 
 ## Success Criteria *(mandatory)*
@@ -212,15 +225,19 @@ An authenticated user searches for users by name/username and for posts by text 
 - **SC-003**: A trainee can complete the full authenticated session lifecycle (register → log in → call a protected endpoint → refresh an expired credential → log out) end-to-end without manual token handling, following only the integration guide.
 - **SC-004**: A liked/commented/followed action results in the recipient seeing a live notification within 2 seconds of the action, without refreshing.
 - **SC-005**: Every list endpoint returns bounded pages and a working next-page cursor, with no unbounded responses regardless of data volume.
-- **SC-006**: All ownership rules hold: a user can never delete or modify another user's post or comment, verified for 100% of ownership-guarded actions.
+- **SC-006**: All ownership rules hold: a user can never edit or delete another user's post, nor delete another user's comment, verified for 100% of ownership-guarded actions.
 - **SC-007**: On first run, the feed and search return non-empty, realistic demo content without any manual data entry.
 - **SC-008**: Every error condition (validation, unauthorized, forbidden, not-found) returns a distinct, consistent, machine-readable response that a client can branch on.
+- **SC-009**: 100% of image uploads that exceed 4 images per post, exceed ~5 MB per image, or use a disallowed type are rejected with a clear error and never persisted.
 
 ## Assumptions
 
 - The **Flutter mobile app is out of scope**; this effort delivers only the backend that Flutter trainees integrate against. Wiring the Flutter side is a separate later effort.
 - The training value comes from realistic, production-shaped patterns (secure token rotation, real-time delivery, cursor pagination, file upload, self-documentation) rather than from social scale — moderate data volumes and single-region operation are assumed.
-- Password strength, credential lifetimes (short access, longer refresh), and rate/size limits follow common industry defaults suitable for a training environment rather than a hardened public deployment.
+- Credential lifetimes are fixed at 15 minutes (access) and 7 days (refresh). Password strength follows common industry defaults suitable for a training environment rather than a hardened public deployment.
+- The home feed is a followed-users timeline (posts from users the viewer follows), not a global or algorithmically ranked feed.
+- Search is full-text and relevance-ranked over usernames/display names (users) and post content (posts).
+- Post text is editable by its author; comments are immutable once posted.
 - Content moderation, private/blocked accounts, direct messaging, media transcoding, and email verification are out of scope for this version.
 - Uploaded images are stored via a straightforward file-storage mechanism appropriate for local/training use; a managed cloud object store is not required.
 - A single relational data store backs the system, provisioned alongside the API by the one-command start.
