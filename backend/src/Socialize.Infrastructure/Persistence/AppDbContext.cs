@@ -20,6 +20,15 @@ public class AppDbContext : DbContext, IApplicationDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // Generated tsvector columns are Postgres-specific (research R10). Non-Npgsql providers
+        // (e.g. EF InMemory in unit tests) can't map NpgsqlTsVector, so drop the shadow property there.
+        if (!Database.IsNpgsql())
+        {
+            modelBuilder.Entity<User>().Ignore("SearchVector");
+            modelBuilder.Entity<Post>().Ignore("SearchVector");
+        }
+
         base.OnModelCreating(modelBuilder);
     }
 }
