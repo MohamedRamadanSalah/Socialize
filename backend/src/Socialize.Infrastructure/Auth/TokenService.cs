@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Microsoft.Extensions.Options;
 using Socialize.Application.Abstractions;
 
 namespace Socialize.Infrastructure.Auth;
@@ -6,6 +7,14 @@ namespace Socialize.Infrastructure.Auth;
 public class TokenService : ITokenService
 {
     private const int BCryptWorkFactor = 11;
+    private readonly JwtOptions _options;
+
+    public TokenService(IOptions<JwtOptions> options)
+    {
+        _options = options.Value;
+    }
+
+    public TimeSpan RefreshTokenLifetime => TimeSpan.FromDays(_options.RefreshTokenDays);
 
     public string HashPassword(string password) => BCrypt.Net.BCrypt.HashPassword(password, BCryptWorkFactor);
 

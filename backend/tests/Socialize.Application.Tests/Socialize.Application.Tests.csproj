@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Socialize.Application\Socialize.Application.csproj" />
+    <ProjectReference Include="..\..\src\Socialize.Infrastructure\Socialize.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

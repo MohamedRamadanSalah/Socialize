@@ -10,4 +10,7 @@ public interface ITokenService
 
     /// <summary>Hashes an opaque refresh token for at-rest storage.</summary>
     string HashRefreshToken(string rawToken);
+
+    /// <summary>Configured refresh token lifetime (7 days per spec clarification).</summary>
+    TimeSpan RefreshTokenLifetime { get; }
 }
