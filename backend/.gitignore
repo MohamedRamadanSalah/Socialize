@@ -1,0 +1,11 @@
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+*.received.*
+src/Socialize.Api/wwwroot/uploads/*
+!src/Socialize.Api/wwwroot/uploads/posts/.gitkeep
+!src/Socialize.Api/wwwroot/uploads/avatars/.gitkeep
+*.log

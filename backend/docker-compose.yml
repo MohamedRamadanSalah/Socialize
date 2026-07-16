@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: socialize-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: socialize
+      POSTGRES_USER: socialize
+      POSTGRES_PASSWORD: socialize_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socialize -d socialize"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: socialize-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@socialize.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Socialize.Api/Dockerfile
+    container_name: socialize-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=socialize;Username=socialize;Password=socialize_dev_password"
+      Jwt__SigningKey: "training-only-super-secret-signing-key-change-me-32chars+"
+      Jwt__Issuer: "socialize-backend"
+      Jwt__Audience: "socialize-clients"
+      Jwt__AccessTokenMinutes: "15"
+      Jwt__RefreshTokenDays: "7"
+      Uploads__MaxImagesPerPost: "4"
+      Uploads__MaxImageBytes: "5242880"
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads-data:/app/wwwroot/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  uploads-data:
