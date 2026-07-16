@@ -1,0 +1,782 @@
+<title>Socialize — Database Schema</title>
+<style>
+  :root {
+    --ink: #0b2942;
+    --ink-soft: #163554;
+    --paper: #f2f6fa;
+    --paper-raised: #ffffff;
+    --cyan: #1e8fae;
+    --cyan-bright: #2fb4d9;
+    --amber: #b5661f;
+    --graphite: #46586b;
+    --line: rgba(11, 41, 66, 0.14);
+    --grid: rgba(11, 41, 66, 0.06);
+    --text: var(--ink);
+    --text-muted: var(--graphite);
+    --surface: var(--paper);
+    --panel: var(--paper-raised);
+    --accent: var(--cyan);
+    --accent-strong: var(--ink);
+    --shadow: 0 1px 2px rgba(11, 41, 66, 0.06), 0 8px 24px rgba(11, 41, 66, 0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e7eef5;
+      --ink-soft: #b9cbe0;
+      --paper: #0a1c2e;
+      --paper-raised: #0f2439;
+      --cyan: #5fd3f3;
+      --cyan-bright: #7fe0fb;
+      --amber: #e2a15c;
+      --graphite: #9fb3c8;
+      --line: rgba(231, 238, 245, 0.16);
+      --grid: rgba(95, 211, 243, 0.07);
+      --text: var(--ink);
+      --text-muted: var(--graphite);
+      --surface: var(--paper);
+      --panel: var(--paper-raised);
+      --accent: var(--cyan);
+      --accent-strong: var(--cyan-bright);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #e7eef5;
+    --ink-soft: #b9cbe0;
+    --paper: #0a1c2e;
+    --paper-raised: #0f2439;
+    --cyan: #5fd3f3;
+    --cyan-bright: #7fe0fb;
+    --amber: #e2a15c;
+    --graphite: #9fb3c8;
+    --line: rgba(231, 238, 245, 0.16);
+    --grid: rgba(95, 211, 243, 0.07);
+    --text: var(--ink);
+    --text-muted: var(--graphite);
+    --surface: var(--paper);
+    --panel: var(--paper-raised);
+    --accent: var(--cyan);
+    --accent-strong: var(--cyan-bright);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  :root[data-theme="light"] {
+    --ink: #0b2942;
+    --ink-soft: #163554;
+    --paper: #f2f6fa;
+    --paper-raised: #ffffff;
+    --cyan: #1e8fae;
+    --cyan-bright: #2fb4d9;
+    --amber: #b5661f;
+    --graphite: #46586b;
+    --line: rgba(11, 41, 66, 0.14);
+    --grid: rgba(11, 41, 66, 0.06);
+    --text: var(--ink);
+    --text-muted: var(--graphite);
+    --surface: var(--paper);
+    --panel: var(--paper-raised);
+    --accent: var(--cyan);
+    --accent-strong: var(--ink);
+    --shadow: 0 1px 2px rgba(11, 41, 66, 0.06), 0 8px 24px rgba(11, 41, 66, 0.05);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-attachment: fixed;
+  }
+
+  .label-face {
+    font-family: "Bahnschrift", "Avenir Next Condensed", "Segoe UI Semibold", system-ui, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+  }
+
+  .data-face {
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  a { color: var(--accent-strong); }
+
+  .sheet {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  .titleblock {
+    border: 1.5px solid var(--ink);
+    background: var(--panel);
+    box-shadow: var(--shadow);
+    padding: 28px 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 40px;
+    align-items: flex-end;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .titleblock::before,
+  .titleblock::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--accent);
+  }
+  .titleblock::before { top: -1.5px; left: -1.5px; border-right: none; border-bottom: none; }
+  .titleblock::after { bottom: -1.5px; right: -1.5px; border-left: none; border-top: none; }
+
+  .titleblock h1 {
+    margin: 0 0 6px;
+    font-family: "Bahnschrift", "Avenir Next Condensed", "Segoe UI Semibold", system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.7rem, 1.2rem + 1.6vw, 2.5rem);
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+  }
+
+  .titleblock .eyebrow {
+    font-family: "Bahnschrift", "Avenir Next Condensed", "Segoe UI Semibold", system-ui, sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+    margin: 0 0 10px;
+  }
+
+  .titleblock p {
+    margin: 0;
+    max-width: 56ch;
+    color: var(--text-muted);
+    font-size: 0.98rem;
+  }
+
+  .meta-strip {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    gap: 2px 28px;
+    text-align: right;
+  }
+
+  .meta-strip div { display: flex; flex-direction: column; gap: 3px; }
+
+  .meta-strip .k {
+    font-family: "Bahnschrift", "Avenir Next Condensed", "Segoe UI Semibold", system-ui, sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .meta-strip .v {
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    font-size: 1.05rem;
+    color: var(--accent-strong);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .legend {
+    margin-top: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .chip .swatch {
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--ink);
+    flex: none;
+  }
+
+  .chip .key {
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border: 1px solid currentColor;
+    color: var(--accent-strong);
+  }
+
+  .section {
+    margin-top: 56px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 18px;
+    border-bottom: 1.5px solid var(--ink);
+    padding-bottom: 10px;
+  }
+
+  .section-head .num {
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--accent-strong);
+    border: 1px solid var(--accent);
+    padding: 1px 7px;
+  }
+
+  .section-head h2 {
+    margin: 0;
+    font-family: "Bahnschrift", "Avenir Next Condensed", "Segoe UI Semibold", system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .section-head .hint {
+    margin-left: auto;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .section > .lede {
+    margin: 0 0 22px;
+    max-width: 72ch;
+    color: var(--text-muted);
+  }
+
+  .diagram-panel {
+    border: 1.5px solid var(--ink);
+    background: var(--panel);
+    box-shadow: var(--shadow);
+    padding: 18px;
+    position: relative;
+  }
+
+  .diagram-panel::before,
+  .diagram-panel::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--accent);
+  }
+  .diagram-panel::before { top: -1.5px; left: -1.5px; border-right: none; border-bottom: none; }
+  .diagram-panel::after { bottom: -1.5px; right: -1.5px; border-left: none; border-top: none; }
+
+  .diagram-scroll {
+    overflow-x: auto;
+    padding: 8px;
+  }
+
+  .diagram-scroll svg { display: block; margin: 0 auto; }
+
+  .diagram-caption {
+    margin-top: 4px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .entity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .entity-card {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .entity-card .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1.5px solid var(--ink);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+
+  .entity-card .head h3 {
+    margin: 0;
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .entity-card .head .tag {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-family: "Bahnschrift", "Avenir Next Condensed", "Segoe UI Semibold", system-ui, sans-serif;
+  }
+
+  .entity-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+  }
+
+  .entity-card td {
+    padding: 7px 16px;
+    border-top: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  .entity-card tr:first-child td { border-top: none; }
+
+  .entity-card td.field {
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    white-space: nowrap;
+    width: 1%;
+  }
+
+  .entity-card td.field .k {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--accent-strong);
+    border: 1px solid var(--accent);
+    padding: 0 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.02em;
+  }
+
+  .entity-card td.type {
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    color: var(--text-muted);
+    white-space: nowrap;
+    width: 1%;
+  }
+
+  .entity-card td.note {
+    color: var(--text-muted);
+  }
+
+  .cascade-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+
+  table.cascade {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+    font-size: 0.9rem;
+  }
+
+  table.cascade th {
+    text-align: left;
+    font-family: "Bahnschrift", "Avenir Next Condensed", "Segoe UI Semibold", system-ui, sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 12px 18px;
+    border-bottom: 1.5px solid var(--ink);
+  }
+
+  table.cascade td {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  table.cascade tr:last-child td { border-bottom: none; }
+
+  table.cascade td.rel { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; white-space: nowrap; }
+
+  .behavior {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Bahnschrift", "Avenir Next Condensed", "Segoe UI Semibold", system-ui, sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+
+  .behavior.cascade { color: var(--accent-strong); }
+  .behavior.restrict { color: var(--amber); }
+
+  .foot {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .foot code {
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    padding: 1px 6px;
+  }
+
+  @media (max-width: 640px) {
+    .titleblock { flex-direction: column; align-items: flex-start; }
+    .meta-strip { grid-template-columns: repeat(2, auto); text-align: left; }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-strong);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto !important; }
+  }
+</style>
+
+<div class="sheet">
+
+  <header class="titleblock">
+    <div>
+      <p class="eyebrow">Schema Reference &mdash; Sheet 1 of 1</p>
+      <h1>Socialize Backend<br />Database Design</h1>
+      <p>Entity-relationship layout for the Postgres schema behind the Socialize training API &mdash; every table, key, and constraint that Clean Architecture&rsquo;s <span class="data-face">Socialize.Infrastructure</span> layer maps onto.</p>
+    </div>
+    <div class="meta-strip">
+      <div><span class="k">Engine</span><span class="v">PostgreSQL 16</span></div>
+      <div><span class="k">Entities</span><span class="v">08</span></div>
+      <div><span class="k">Relations</span><span class="v">11</span></div>
+      <div><span class="k">ORM</span><span class="v">EF Core 8</span></div>
+    </div>
+  </header>
+
+  <div class="legend" aria-label="Diagram legend">
+    <span class="chip"><span class="key">PK</span> Primary key</span>
+    <span class="chip"><span class="key">FK</span> Foreign key</span>
+    <span class="chip"><span class="key">UK</span> Unique constraint</span>
+    <span class="chip"><span class="key">PK, FK</span> Composite key member</span>
+    <span class="chip"><span class="behavior cascade">Cascade</span> deletes children</span>
+    <span class="chip"><span class="behavior restrict">Restrict</span> blocks parent delete</span>
+  </div>
+
+  <section class="section" id="erd">
+    <div class="section-head">
+      <span class="num">01</span>
+      <h2>Entity-Relationship Diagram</h2>
+      <span class="hint">rendered with Mermaid &mdash; scroll horizontally on small screens</span>
+    </div>
+    <div class="diagram-panel">
+      <div class="diagram-scroll">
+        <pre class="mermaid">
+erDiagram
+    USER ||--o{ POST : authors
+    USER ||--o{ COMMENT : authors
+    USER ||--o{ REFRESH_TOKEN : owns
+    USER ||--o{ LIKE : likes
+    USER ||--o{ FOLLOW : "follows (as follower)"
+    USER ||--o{ FOLLOW : "is followed (as followee)"
+    USER ||--o{ NOTIFICATION : "receives (as recipient)"
+    USER ||--o{ NOTIFICATION : "triggers (as actor)"
+
+    POST ||--o{ POST_IMAGE : contains
+    POST ||--o{ COMMENT : "has"
+    POST ||--o{ LIKE : "has"
+
+    USER {
+        uuid Id PK
+        string UserName UK "case-insensitive unique"
+        string Email UK "case-insensitive unique"
+        string PasswordHash "BCrypt, never serialized"
+        string DisplayName
+        string Bio "nullable"
+        string AvatarUrl "nullable"
+        timestamptz CreatedAt
+        tsvector SearchVector "generated, GIN indexed"
+    }
+
+    REFRESH_TOKEN {
+        uuid Id PK
+        uuid UserId FK
+        string TokenHash UK "SHA-256 of opaque token"
+        timestamptz ExpiresAt "issued + 7 days"
+        timestamptz CreatedAt
+        timestamptz RevokedAt "nullable"
+        string ReplacedByTokenHash "nullable, rotation"
+    }
+
+    POST {
+        uuid Id PK
+        uuid AuthorId FK
+        string Content "max 2000 chars"
+        timestamptz CreatedAt
+        timestamptz EditedAt "nullable; non-null = edited"
+        tsvector SearchVector "generated, GIN indexed"
+    }
+
+    POST_IMAGE {
+        uuid Id PK
+        uuid PostId FK
+        string Url
+        int Order "0-based, max 4 per post"
+    }
+
+    COMMENT {
+        uuid Id PK
+        uuid PostId FK
+        uuid AuthorId FK
+        string Content "max 1000 chars, immutable"
+        timestamptz CreatedAt
+    }
+
+    LIKE {
+        uuid UserId "PK, FK"
+        uuid PostId "PK, FK"
+        timestamptz CreatedAt
+    }
+
+    FOLLOW {
+        uuid FollowerId "PK, FK"
+        uuid FolloweeId "PK, FK"
+        timestamptz CreatedAt
+    }
+
+    NOTIFICATION {
+        uuid Id PK
+        uuid RecipientId FK
+        uuid ActorId FK
+        string Type "Like | Comment | Follow"
+        uuid EntityId "nullable"
+        bool IsRead
+        timestamptz CreatedAt
+    }
+        </pre>
+      </div>
+      <p class="diagram-caption">Composite-key tables (Like, Follow) have no surrogate Id &mdash; the pair itself is the key. Follow and Notification each carry two independent foreign keys into User.</p>
+    </div>
+  </section>
+
+  <section class="section" id="entities">
+    <div class="section-head">
+      <span class="num">02</span>
+      <h2>Entity Field Reference</h2>
+      <span class="hint">full column detail behind the diagram above</span>
+    </div>
+    <div class="entity-grid">
+
+      <article class="entity-card">
+        <div class="head"><h3>User</h3><span class="tag">8 columns</span></div>
+        <table>
+          <tr><td class="field">Id<span class="k">PK</span></td><td class="type">uuid</td><td class="note">Surrogate key</td></tr>
+          <tr><td class="field">UserName<span class="k">UK</span></td><td class="type">varchar(30)</td><td class="note">Case-insensitive unique, 3-30 chars</td></tr>
+          <tr><td class="field">Email<span class="k">UK</span></td><td class="type">varchar(256)</td><td class="note">Case-insensitive unique</td></tr>
+          <tr><td class="field">PasswordHash</td><td class="type">text</td><td class="note">BCrypt hash; never serialized to clients</td></tr>
+          <tr><td class="field">DisplayName</td><td class="type">varchar(50)</td><td class="note">Required</td></tr>
+          <tr><td class="field">Bio</td><td class="type">varchar(300)</td><td class="note">Nullable</td></tr>
+          <tr><td class="field">AvatarUrl</td><td class="type">text</td><td class="note">Nullable relative URL</td></tr>
+          <tr><td class="field">CreatedAt</td><td class="type">timestamptz</td><td class="note">Default now()</td></tr>
+          <tr><td class="field">SearchVector</td><td class="type">tsvector</td><td class="note">Generated (UserName + DisplayName), GIN index</td></tr>
+        </table>
+      </article>
+
+      <article class="entity-card">
+        <div class="head"><h3>RefreshToken</h3><span class="tag">7 columns</span></div>
+        <table>
+          <tr><td class="field">Id<span class="k">PK</span></td><td class="type">uuid</td><td class="note">Surrogate key</td></tr>
+          <tr><td class="field">UserId<span class="k">FK</span></td><td class="type">uuid</td><td class="note">&rarr; User.Id, cascade on delete</td></tr>
+          <tr><td class="field">TokenHash<span class="k">UK</span></td><td class="type">text</td><td class="note">SHA-256 of the opaque token</td></tr>
+          <tr><td class="field">ExpiresAt</td><td class="type">timestamptz</td><td class="note">Issued + 7 days</td></tr>
+          <tr><td class="field">CreatedAt</td><td class="type">timestamptz</td><td class="note">&nbsp;</td></tr>
+          <tr><td class="field">RevokedAt</td><td class="type">timestamptz</td><td class="note">Nullable; set on rotation or logout</td></tr>
+          <tr><td class="field">ReplacedByTokenHash</td><td class="type">text</td><td class="note">Nullable audit chain link</td></tr>
+        </table>
+      </article>
+
+      <article class="entity-card">
+        <div class="head"><h3>Post</h3><span class="tag">6 columns</span></div>
+        <table>
+          <tr><td class="field">Id<span class="k">PK</span></td><td class="type">uuid</td><td class="note">Surrogate key</td></tr>
+          <tr><td class="field">AuthorId<span class="k">FK</span></td><td class="type">uuid</td><td class="note">&rarr; User.Id, restrict on delete</td></tr>
+          <tr><td class="field">Content</td><td class="type">varchar(2000)</td><td class="note">Required</td></tr>
+          <tr><td class="field">CreatedAt</td><td class="type">timestamptz</td><td class="note">Indexed with Id for keyset paging</td></tr>
+          <tr><td class="field">EditedAt</td><td class="type">timestamptz</td><td class="note">Nullable; non-null flags &ldquo;edited&rdquo;</td></tr>
+          <tr><td class="field">SearchVector</td><td class="type">tsvector</td><td class="note">Generated (Content), GIN index</td></tr>
+        </table>
+      </article>
+
+      <article class="entity-card">
+        <div class="head"><h3>PostImage</h3><span class="tag">4 columns</span></div>
+        <table>
+          <tr><td class="field">Id<span class="k">PK</span></td><td class="type">uuid</td><td class="note">Surrogate key</td></tr>
+          <tr><td class="field">PostId<span class="k">FK</span></td><td class="type">uuid</td><td class="note">&rarr; Post.Id, cascade on delete</td></tr>
+          <tr><td class="field">Url</td><td class="type">text</td><td class="note">Relative path under /uploads/posts</td></tr>
+          <tr><td class="field">Order</td><td class="type">int</td><td class="note">0-based position, max 4 per post</td></tr>
+        </table>
+      </article>
+
+      <article class="entity-card">
+        <div class="head"><h3>Comment</h3><span class="tag">5 columns</span></div>
+        <table>
+          <tr><td class="field">Id<span class="k">PK</span></td><td class="type">uuid</td><td class="note">Surrogate key</td></tr>
+          <tr><td class="field">PostId<span class="k">FK</span></td><td class="type">uuid</td><td class="note">&rarr; Post.Id, cascade on delete</td></tr>
+          <tr><td class="field">AuthorId<span class="k">FK</span></td><td class="type">uuid</td><td class="note">&rarr; User.Id, restrict on delete</td></tr>
+          <tr><td class="field">Content</td><td class="type">varchar(1000)</td><td class="note">Immutable once posted &mdash; no edit endpoint</td></tr>
+          <tr><td class="field">CreatedAt</td><td class="type">timestamptz</td><td class="note">Indexed with PostId + Id for paging</td></tr>
+        </table>
+      </article>
+
+      <article class="entity-card">
+        <div class="head"><h3>Like</h3><span class="tag">composite key</span></div>
+        <table>
+          <tr><td class="field">UserId<span class="k">PK, FK</span></td><td class="type">uuid</td><td class="note">&rarr; User.Id, restrict on delete</td></tr>
+          <tr><td class="field">PostId<span class="k">PK, FK</span></td><td class="type">uuid</td><td class="note">&rarr; Post.Id, cascade on delete</td></tr>
+          <tr><td class="field">CreatedAt</td><td class="type">timestamptz</td><td class="note">&nbsp;</td></tr>
+        </table>
+      </article>
+
+      <article class="entity-card">
+        <div class="head"><h3>Follow</h3><span class="tag">composite key</span></div>
+        <table>
+          <tr><td class="field">FollowerId<span class="k">PK, FK</span></td><td class="type">uuid</td><td class="note">&rarr; User.Id, restrict on delete</td></tr>
+          <tr><td class="field">FolloweeId<span class="k">PK, FK</span></td><td class="type">uuid</td><td class="note">&rarr; User.Id, restrict on delete</td></tr>
+          <tr><td class="field">CreatedAt</td><td class="type">timestamptz</td><td class="note">Drives home-feed composition</td></tr>
+        </table>
+      </article>
+
+      <article class="entity-card">
+        <div class="head"><h3>Notification</h3><span class="tag">6 columns</span></div>
+        <table>
+          <tr><td class="field">Id<span class="k">PK</span></td><td class="type">uuid</td><td class="note">Surrogate key</td></tr>
+          <tr><td class="field">RecipientId<span class="k">FK</span></td><td class="type">uuid</td><td class="note">&rarr; User.Id, restrict on delete</td></tr>
+          <tr><td class="field">ActorId<span class="k">FK</span></td><td class="type">uuid</td><td class="note">&rarr; User.Id, restrict on delete</td></tr>
+          <tr><td class="field">Type</td><td class="type">enum</td><td class="note">Like &middot; Comment &middot; Follow</td></tr>
+          <tr><td class="field">EntityId</td><td class="type">uuid</td><td class="note">Nullable; PostId for Like/Comment</td></tr>
+          <tr><td class="field">IsRead</td><td class="type">bool</td><td class="note">Default false</td></tr>
+        </table>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="section" id="cascade">
+    <div class="section-head">
+      <span class="num">03</span>
+      <h2>Delete Behavior</h2>
+      <span class="hint">not encoded in the diagram above &mdash; captured here instead</span>
+    </div>
+    <p class="lede">Mermaid&rsquo;s ER notation doesn&rsquo;t express <span class="data-face">ON DELETE</span> rules, so every foreign key&rsquo;s behavior is spelled out below. The pattern: children of a Post cascade with it; anything touching User restricts, since there&rsquo;s no delete-account endpoint and several tables carry two independent foreign keys back to User.</p>
+    <div class="cascade-table-wrap">
+      <table class="cascade">
+        <thead>
+          <tr><th>Relationship</th><th>On delete of parent</th><th>Rationale</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="rel">Post &rarr; PostImage</td><td><span class="behavior cascade">Cascade</span></td><td>Images have no meaning without their post</td></tr>
+          <tr><td class="rel">Post &rarr; Comment</td><td><span class="behavior cascade">Cascade</span></td><td>Comments have no meaning without their post</td></tr>
+          <tr><td class="rel">Post &rarr; Like</td><td><span class="behavior cascade">Cascade</span></td><td>Likes have no meaning without their post</td></tr>
+          <tr><td class="rel">User &rarr; Post <em>(author)</em></td><td><span class="behavior restrict">Restrict</span></td><td>No delete-account endpoint exists; avoids surprise mass-deletes</td></tr>
+          <tr><td class="rel">User &rarr; Comment <em>(author)</em></td><td><span class="behavior restrict">Restrict</span></td><td>Same reasoning; also dodges EF Core&rsquo;s multiple-cascade-path error via Post</td></tr>
+          <tr><td class="rel">User &rarr; RefreshToken</td><td><span class="behavior cascade">Cascade</span></td><td>Tokens are meaningless without their owning user</td></tr>
+          <tr><td class="rel">User &rarr; Like <em>(liker)</em></td><td><span class="behavior restrict">Restrict</span></td><td>Avoids a second cascade path into Like alongside Post &rarr; Like</td></tr>
+          <tr><td class="rel">User &rarr; Follow <em>(either side)</em></td><td><span class="behavior restrict">Restrict</span></td><td>Avoids a cascade path colliding with the composite key&rsquo;s dual FK</td></tr>
+          <tr><td class="rel">User &rarr; Notification <em>(either side)</em></td><td><span class="behavior restrict">Restrict</span></td><td>Same reasoning as Follow</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Source of truth: <code>specs/001-social-media-backend/data-model.md</code></span>
+    <span>Full schema narrative: <code>backend/DATABASE.md</code></span>
+  </footer>
+
+</div>
+
+<!-- Classic script (not type="module") on purpose: file:// blocks cross-origin ES-module imports under CORS, but a plain <script src> tag loads fine either way. -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+
+  function currentIsDark() {
+    const root = document.documentElement;
+    if (root.getAttribute("data-theme") === "dark") return true;
+    if (root.getAttribute("data-theme") === "light") return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
+  function renderMermaid() {
+    document.querySelectorAll("pre.mermaid[data-processed]").forEach((el) => {
+      el.removeAttribute("data-processed");
+    });
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: currentIsDark() ? "dark" : "neutral",
+      themeVariables: currentIsDark()
+        ? {
+            primaryColor: "#123a56",
+            primaryTextColor: "#e7eef5",
+            primaryBorderColor: "#5fd3f3",
+            lineColor: "#5fd3f3",
+            secondaryColor: "#0f2439",
+            tertiaryColor: "#0a1c2e",
+            fontFamily: "Cascadia Code, SFMono-Regular, Consolas, monospace"
+          }
+        : {
+            primaryColor: "#eaf4f8",
+            primaryTextColor: "#0b2942",
+            primaryBorderColor: "#1e8fae",
+            lineColor: "#1e8fae",
+            secondaryColor: "#ffffff",
+            tertiaryColor: "#f2f6fa",
+            fontFamily: "Cascadia Code, SFMono-Regular, Consolas, monospace"
+          }
+    });
+    mermaid.run({ querySelector: "pre.mermaid" });
+  }
+
+  renderMermaid();
+
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  mq.addEventListener("change", renderMermaid);
+
+  new MutationObserver(renderMermaid).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"]
+  });
+</script>
