@@ -52,12 +52,10 @@ public class PostsController : ControllerBase
     }
 
     [HttpGet("posts/{id:guid}")]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(PostDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<PostDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var viewerId = User.Identity?.IsAuthenticated == true ? _currentUser.UserId : (Guid?)null;
-        var result = await _mediator.Send(new GetPostQuery(id, viewerId), cancellationToken);
+        var result = await _mediator.Send(new GetPostQuery(id, _currentUser.UserId), cancellationToken);
         return Ok(result);
     }
 
@@ -86,12 +84,10 @@ public class PostsController : ControllerBase
     }
 
     [HttpGet("users/{id:guid}/posts")]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(CursorPage<PostDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPage<PostDto>>> GetUserPosts(Guid id, [FromQuery] string? cursor, [FromQuery] int? limit, CancellationToken cancellationToken)
     {
-        var viewerId = User.Identity?.IsAuthenticated == true ? _currentUser.UserId : (Guid?)null;
-        var result = await _mediator.Send(new GetUserPostsQuery(id, viewerId, cursor, limit), cancellationToken);
+        var result = await _mediator.Send(new GetUserPostsQuery(id, _currentUser.UserId, cursor, limit), cancellationToken);
         return Ok(result);
     }
 }

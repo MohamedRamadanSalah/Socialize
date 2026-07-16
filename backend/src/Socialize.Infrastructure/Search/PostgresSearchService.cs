@@ -129,7 +129,7 @@ public class PostgresSearchService : ISearchService
     }
 }
 
-internal static class RankCursor
+public static class RankCursor
 {
     public static string Encode(float rank, DateTimeOffset createdAt, Guid id) =>
         Convert.ToBase64String(Encoding.UTF8.GetBytes($"{rank:R}|{createdAt:O}|{id}"));

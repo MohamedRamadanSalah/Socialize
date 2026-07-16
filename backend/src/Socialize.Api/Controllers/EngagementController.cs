@@ -53,7 +53,6 @@ public class EngagementController : ControllerBase
     }
 
     [HttpGet("posts/{id:guid}/comments")]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(CursorPage<CommentDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPage<CommentDto>>> GetComments(Guid id, [FromQuery] string? cursor, [FromQuery] int? limit, CancellationToken cancellationToken)
     {

@@ -31,12 +31,10 @@ public class UsersController : ControllerBase
     public record UpdateProfileRequest(string? DisplayName, string? Bio);
 
     [HttpGet("users/{username}")]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<UserProfileDto>> GetByUsername(string username, CancellationToken cancellationToken)
     {
-        var viewerId = User.Identity?.IsAuthenticated == true ? _currentUser.UserId : (Guid?)null;
-        var result = await _mediator.Send(new GetProfileByUsernameQuery(username, viewerId), cancellationToken);
+        var result = await _mediator.Send(new GetProfileByUsernameQuery(username, _currentUser.UserId), cancellationToken);
         return Ok(result);
     }
 
@@ -74,7 +72,6 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("users/{id:guid}/followers")]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(CursorPage<UserSummaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPage<UserSummaryDto>>> GetFollowers(Guid id, [FromQuery] string? cursor, [FromQuery] int? limit, CancellationToken cancellationToken)
     {
@@ -83,7 +80,6 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("users/{id:guid}/following")]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(CursorPage<UserSummaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPage<UserSummaryDto>>> GetFollowing(Guid id, [FromQuery] string? cursor, [FromQuery] int? limit, CancellationToken cancellationToken)
     {
