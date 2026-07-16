@@ -39,7 +39,7 @@ public class UsersHandlerTests
     public async Task Follow_SelfFollow_ThrowsValidation()
     {
         var (db, alice, _) = SeedTwoUsers();
-        var handler = new FollowCommandHandler(db);
+        var handler = new FollowCommandHandler(db, new FakeNotificationPublisher());
 
         var act = () => handler.Handle(new FollowCommand(alice.Id, alice.Id), default);
 
@@ -50,7 +50,7 @@ public class UsersHandlerTests
     public async Task Follow_IsIdempotent()
     {
         var (db, alice, bob) = SeedTwoUsers();
-        var handler = new FollowCommandHandler(db);
+        var handler = new FollowCommandHandler(db, new FakeNotificationPublisher());
 
         await handler.Handle(new FollowCommand(alice.Id, bob.Id), default);
         await handler.Handle(new FollowCommand(alice.Id, bob.Id), default);
@@ -62,7 +62,7 @@ public class UsersHandlerTests
     public async Task Follow_ThenAppearsInFollowersAndFollowing_ThenUnfollow_Removes()
     {
         var (db, alice, bob) = SeedTwoUsers();
-        var followHandler = new FollowCommandHandler(db);
+        var followHandler = new FollowCommandHandler(db, new FakeNotificationPublisher());
         await followHandler.Handle(new FollowCommand(alice.Id, bob.Id), default);
 
         var followersHandler = new GetFollowersQueryHandler(db);
