@@ -33,9 +33,9 @@ description: "Task list for Flutter Integration Coaching Program"
 
 **Purpose**: Create the directories and skeletons the rest of the work fills in.
 
-- [ ] T001 Create `specs/002-flutter-integration-coaching/briefs/` directory to hold the 6 vertical-slice brief documents
-- [ ] T002 [P] Create `.claude/skills/flutter-coach/SKILL.md` with YAML frontmatter only (`name: flutter-coach`, `description`, `argument-hint`, `user-invocable: true`), matching the convention in `.claude/skills/speckit-plan/SKILL.md`
-- [ ] T003 [P] Confirm all Phase 0/1 design docs are present and internally consistent: `research.md`, `data-model.md`, `contracts/task-brief-template.md`, `contracts/evaluation-rubric.md`, `contracts/progress-record.schema.md`, `quickstart.md`
+- [X] T001 Create `specs/002-flutter-integration-coaching/briefs/` directory to hold the 6 vertical-slice brief documents
+- [X] T002 [P] Create `.claude/skills/flutter-coach/SKILL.md` with YAML frontmatter only (`name: flutter-coach`, `description`, `argument-hint`, `user-invocable: true`), matching the convention in `.claude/skills/speckit-plan/SKILL.md`
+- [X] T003 [P] Confirm all Phase 0/1 design docs are present and internally consistent: `research.md`, `data-model.md`, `contracts/task-brief-template.md`, `contracts/evaluation-rubric.md`, `contracts/progress-record.schema.md`, `quickstart.md`
 
 ---
 
@@ -45,11 +45,11 @@ description: "Task list for Flutter Integration Coaching Program"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 Author the session-bootstrap behavior in `.claude/skills/flutter-coach/SKILL.md`: on invocation, read `specs/002-flutter-integration-coaching/progress-record.md` if present, otherwise create it per `contracts/progress-record.schema.md`; report `current_unlocked_slice` to the trainee
-- [ ] T005 [P] Author the brief-lookup behavior in `.claude/skills/flutter-coach/SKILL.md`: given `current_unlocked_slice`, load and return the matching file at `specs/002-flutter-integration-coaching/briefs/<slice_id>.md` (depends on T001)
-- [ ] T006 [P] Create the initial `specs/002-flutter-integration-coaching/progress-record.md` (all 6 slices `not_started`, `current_unlocked_slice` = Authentication & Sessions, empty Skip Deviations and Recurring Violation Patterns sections) per `contracts/progress-record.schema.md`
-- [ ] T007 Author the baseline no-code refusal rule (FR-006) and Socratic-response instruction (FR-007) in `.claude/skills/flutter-coach/SKILL.md` (depends on T004)
-- [ ] T008 Wire `.claude/skills/flutter-coach/SKILL.md` to point at `contracts/evaluation-rubric.md` as the single source of truth for grading — no rubric content duplicated inline (depends on T004)
+- [X] T004 Author the session-bootstrap behavior in `.claude/skills/flutter-coach/SKILL.md`: on invocation, read `specs/002-flutter-integration-coaching/progress-record.md` if present, otherwise create it per `contracts/progress-record.schema.md`; report `current_unlocked_slice` to the trainee
+- [X] T005 [P] Author the brief-lookup behavior in `.claude/skills/flutter-coach/SKILL.md`: given `current_unlocked_slice`, load and return the matching file at `specs/002-flutter-integration-coaching/briefs/<slice_id>.md` (depends on T001)
+- [X] T006 [P] Create the initial `specs/002-flutter-integration-coaching/progress-record.md` (all 6 slices `not_started`, `current_unlocked_slice` = Authentication & Sessions, empty Skip Deviations and Recurring Violation Patterns sections) per `contracts/progress-record.schema.md`
+- [X] T007 Author the baseline no-code refusal rule (FR-006) and Socratic-response instruction (FR-007) in `.claude/skills/flutter-coach/SKILL.md` (depends on T004)
+- [X] T008 Wire `.claude/skills/flutter-coach/SKILL.md` to point at `contracts/evaluation-rubric.md` as the single source of truth for grading — no rubric content duplicated inline (depends on T004)
 
 **Checkpoint**: The skill loads, reports current status, hands over whichever brief is unlocked, and refuses direct code requests. No slice content exists yet — user story work can now begin.
 
@@ -63,11 +63,11 @@ description: "Task list for Flutter Integration Coaching Program"
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Author `specs/002-flutter-integration-coaching/briefs/auth.md` — Authentication & Sessions brief (goal; backend endpoints from `backend/API.md`'s auth section; domain/data/presentation responsibilities; Riverpod providers for session state; UI flows for register/login/logout + silent refresh; acceptance criteria mirroring `001-social-media-backend/spec.md` Story 1; definition-of-done checklist) per `contracts/task-brief-template.md`
-- [ ] T010 [US1] Author the explicit-submission recognition instruction (FR-009, signal phrases from `research.md` §1) in `.claude/skills/flutter-coach/SKILL.md` (depends on T007)
-- [ ] T011 [US1] Author the evaluate-and-iterate loop in `.claude/skills/flutter-coach/SKILL.md`: on a recognized submission, apply `contracts/evaluation-rubric.md`, return the structured verdict, and on a failing verdict allow resubmission without ever supplying a fix (depends on T008, T010)
-- [ ] T012 [US1] Author the pass-advances-progress instruction in `.claude/skills/flutter-coach/SKILL.md`: on a passing evaluation, update the evaluated slice's row in `progress-record.md` to `passed` and advance `current_unlocked_slice` to the next slice per `contracts/progress-record.schema.md` (depends on T006, T011)
-- [ ] T013 [US1] Run `quickstart.md` Scenarios 1, 2, 4, and 6 (scoped to Authentication) as a dry run; fix any gaps found in `SKILL.md` or `briefs/auth.md`
+- [X] T009 [US1] Author `specs/002-flutter-integration-coaching/briefs/auth.md` — Authentication & Sessions brief (goal; backend endpoints from `backend/API.md`'s auth section; domain/data/presentation responsibilities; Riverpod providers for session state; UI flows for register/login/logout + silent refresh; acceptance criteria mirroring `001-social-media-backend/spec.md` Story 1; definition-of-done checklist) per `contracts/task-brief-template.md`
+- [X] T010 [US1] Author the explicit-submission recognition instruction (FR-009, signal phrases from `research.md` §1) in `.claude/skills/flutter-coach/SKILL.md` (depends on T007)
+- [X] T011 [US1] Author the evaluate-and-iterate loop in `.claude/skills/flutter-coach/SKILL.md`: on a recognized submission, apply `contracts/evaluation-rubric.md`, return the structured verdict, and on a failing verdict allow resubmission without ever supplying a fix (depends on T008, T010)
+- [X] T012 [US1] Author the pass-advances-progress instruction in `.claude/skills/flutter-coach/SKILL.md`: on a passing evaluation, update the evaluated slice's row in `progress-record.md` to `passed` and advance `current_unlocked_slice` to the next slice per `contracts/progress-record.schema.md` (depends on T006, T011)
+- [X] T013 [US1] Run `quickstart.md` Scenarios 1, 2, 4, and 6 (scoped to Authentication) as a dry run; fix any gaps found in `SKILL.md` or `briefs/auth.md`
 
 **Checkpoint**: User Story 1 fully functional and independently testable (MVP).
 
@@ -81,12 +81,12 @@ description: "Task list for Flutter Integration Coaching Program"
 
 ### Implementation for User Story 2
 
-- [ ] T014 [P] [US2] Author `specs/002-flutter-integration-coaching/briefs/profiles-social-graph.md` per `contracts/task-brief-template.md`, sourced from `001-social-media-backend/spec.md` Story 3 and its profile/follow endpoints
-- [ ] T015 [P] [US2] Author `specs/002-flutter-integration-coaching/briefs/posts-feed.md` per `contracts/task-brief-template.md`, sourced from `001-social-media-backend/spec.md` Story 4 and its posts/feed endpoints
-- [ ] T016 [P] [US2] Author `specs/002-flutter-integration-coaching/briefs/engagement.md` per `contracts/task-brief-template.md`, sourced from `001-social-media-backend/spec.md` Story 5 and its likes/comments endpoints
-- [ ] T017 [P] [US2] Author `specs/002-flutter-integration-coaching/briefs/notifications.md` per `contracts/task-brief-template.md`, sourced from `001-social-media-backend/spec.md` Story 6, its notifications/real-time endpoints, and the real-time client guidance in `research.md` §5
-- [ ] T018 [P] [US2] Author `specs/002-flutter-integration-coaching/briefs/search.md` per `contracts/task-brief-template.md`, sourced from `001-social-media-backend/spec.md` Story 7 and its search endpoints
-- [ ] T019 [US2] Cross-check all 6 briefs (`auth.md` plus the 5 above) for structural consistency against `contracts/task-brief-template.md` and correct `sequence_position`/`prerequisite_slice_id` chaining per `data-model.md` (depends on T009, T014, T015, T016, T017, T018)
+- [X] T014 [P] [US2] Author `specs/002-flutter-integration-coaching/briefs/profiles-social-graph.md` per `contracts/task-brief-template.md`, sourced from `001-social-media-backend/spec.md` Story 3 and its profile/follow endpoints
+- [X] T015 [P] [US2] Author `specs/002-flutter-integration-coaching/briefs/posts-feed.md` per `contracts/task-brief-template.md`, sourced from `001-social-media-backend/spec.md` Story 4 and its posts/feed endpoints
+- [X] T016 [P] [US2] Author `specs/002-flutter-integration-coaching/briefs/engagement.md` per `contracts/task-brief-template.md`, sourced from `001-social-media-backend/spec.md` Story 5 and its likes/comments endpoints
+- [X] T017 [P] [US2] Author `specs/002-flutter-integration-coaching/briefs/notifications.md` per `contracts/task-brief-template.md`, sourced from `001-social-media-backend/spec.md` Story 6, its notifications/real-time endpoints, and the real-time client guidance in `research.md` §5
+- [X] T018 [P] [US2] Author `specs/002-flutter-integration-coaching/briefs/search.md` per `contracts/task-brief-template.md`, sourced from `001-social-media-backend/spec.md` Story 7 and its search endpoints
+- [X] T019 [US2] Cross-check all 6 briefs (`auth.md` plus the 5 above) for structural consistency against `contracts/task-brief-template.md` and correct `sequence_position`/`prerequisite_slice_id` chaining per `data-model.md` (depends on T009, T014, T015, T016, T017, T018)
 
 **Checkpoint**: User Stories 1 and 2 both done — a trainee can read any brief in isolation and know exactly what to build.
 
@@ -100,10 +100,10 @@ description: "Task list for Flutter Integration Coaching Program"
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Expand the no-code rule in `.claude/skills/flutter-coach/SKILL.md` to explicitly cover indirect phrasings ("give an example implementation", "just this one snippet", "pseudo-code that's basically real code") so FR-006 holds regardless of phrasing (depends on T007)
-- [ ] T021 [US3] Author the hint-escalation instruction (FR-008) in `.claude/skills/flutter-coach/SKILL.md`: when the trainee is stuck across repeated exchanges on the same point, increase hint specificity (name the exact pattern/provider type/concept) while still never emitting code (depends on T020)
-- [ ] T022 [US3] Author the incidental-code-vs-submission boundary instruction in `.claude/skills/flutter-coach/SKILL.md`: code shared without an explicit signal gets hints only, never a rubric verdict or a `progress-record.md` update (depends on T010, T020)
-- [ ] T023 [US3] Run `quickstart.md` Scenarios 2 and 3 as a dry run across at least 3 different slices' briefs and phrasings; fix any leakage found
+- [X] T020 [US3] Expand the no-code rule in `.claude/skills/flutter-coach/SKILL.md` to explicitly cover indirect phrasings ("give an example implementation", "just this one snippet", "pseudo-code that's basically real code") so FR-006 holds regardless of phrasing (depends on T007)
+- [X] T021 [US3] Author the hint-escalation instruction (FR-008) in `.claude/skills/flutter-coach/SKILL.md`: when the trainee is stuck across repeated exchanges on the same point, increase hint specificity (name the exact pattern/provider type/concept) while still never emitting code (depends on T020)
+- [X] T022 [US3] Author the incidental-code-vs-submission boundary instruction in `.claude/skills/flutter-coach/SKILL.md`: code shared without an explicit signal gets hints only, never a rubric verdict or a `progress-record.md` update (depends on T010, T020)
+- [X] T023 [US3] Run `quickstart.md` Scenarios 2 and 3 as a dry run across at least 3 different slices' briefs and phrasings; fix any leakage found
 
 **Checkpoint**: User Stories 1–3 done — the P1 MVP (workflow, full brief set, hardened no-code contract) is complete.
 
@@ -117,9 +117,9 @@ description: "Task list for Flutter Integration Coaching Program"
 
 ### Implementation for User Story 4
 
-- [ ] T024 [US4] Author the gating-check instruction in `.claude/skills/flutter-coach/SKILL.md`: before handing over any brief other than `current_unlocked_slice`, refuse and point back to the outstanding evaluation (depends on T005)
-- [ ] T025 [US4] Author the explicit-skip handling instruction in `.claude/skills/flutter-coach/SKILL.md`: recognize an explicit skip request, advance `current_unlocked_slice` to the requested slice, and append a Skip Deviations entry per `contracts/progress-record.schema.md` (depends on T024, T006)
-- [ ] T026 [US4] Run `quickstart.md` Scenarios 5 and 7 as a dry run; fix any gaps found
+- [X] T024 [US4] Author the gating-check instruction in `.claude/skills/flutter-coach/SKILL.md`: before handing over any brief other than `current_unlocked_slice`, refuse and point back to the outstanding evaluation (depends on T005)
+- [X] T025 [US4] Author the explicit-skip handling instruction in `.claude/skills/flutter-coach/SKILL.md`: recognize an explicit skip request, advance `current_unlocked_slice` to the requested slice, and append a Skip Deviations entry per `contracts/progress-record.schema.md` (depends on T024, T006)
+- [X] T026 [US4] Run `quickstart.md` Scenarios 5 and 7 as a dry run; fix any gaps found
 
 **Checkpoint**: Gating and explicit-skip recording both verified.
 
@@ -133,10 +133,10 @@ description: "Task list for Flutter Integration Coaching Program"
 
 ### Implementation for User Story 5
 
-- [ ] T027 [US5] Author the per-dimension citation instruction in `.claude/skills/flutter-coach/SKILL.md`: every `needs_revision` dimension must include a specific cited violation (what and where), never a rewritten version of the trainee's code (depends on T011)
-- [ ] T028 [US5] Author the automated-pass-is-not-sufficient rule (FR-011) in `.claude/skills/flutter-coach/SKILL.md`: disregard trainee claims of "it compiles / tests pass" when `architecture_compliance` or `riverpod_usage` are violated (depends on T027)
-- [ ] T029 [US5] Author the trainee-explanation gate (FR-012) in `.claude/skills/flutter-coach/SKILL.md`: withhold an overall pass until the trainee explains their key design decisions in their own words (depends on T027)
-- [ ] T030 [US5] Run `quickstart.md` Scenario 4 as a dry run with a deliberately flawed submission; confirm the failing verdict and the explanation gate both hold
+- [X] T027 [US5] Author the per-dimension citation instruction in `.claude/skills/flutter-coach/SKILL.md`: every `needs_revision` dimension must include a specific cited violation (what and where), never a rewritten version of the trainee's code (depends on T011)
+- [X] T028 [US5] Author the automated-pass-is-not-sufficient rule (FR-011) in `.claude/skills/flutter-coach/SKILL.md`: disregard trainee claims of "it compiles / tests pass" when `architecture_compliance` or `riverpod_usage` are violated (depends on T027)
+- [X] T029 [US5] Author the trainee-explanation gate (FR-012) in `.claude/skills/flutter-coach/SKILL.md`: withhold an overall pass until the trainee explains their key design decisions in their own words (depends on T027)
+- [X] T030 [US5] Run `quickstart.md` Scenario 4 as a dry run with a deliberately flawed submission; confirm the failing verdict and the explanation gate both hold
 
 **Checkpoint**: Rubric enforcement fully verified end-to-end.
 
@@ -150,10 +150,10 @@ description: "Task list for Flutter Integration Coaching Program"
 
 ### Implementation for User Story 6
 
-- [ ] T031 [US6] Author the violation-history matching instruction in `.claude/skills/flutter-coach/SKILL.md`: on every evaluation, compare cited violations against `progress-record.md`'s Recurring Violation Patterns by pattern name; append a new entry or increment an existing one (depends on T028, T006)
-- [ ] T032 [US6] Author the recurrence-callback instruction in `.claude/skills/flutter-coach/SKILL.md`: when a submission repeats an already-flagged pattern, explicitly reference the earlier occurrence in the feedback (depends on T031)
-- [ ] T033 [US6] Author the progress-summary-on-request instruction in `.claude/skills/flutter-coach/SKILL.md`: when asked for current status, report `current_unlocked_slice`, per-slice status, and recurring patterns directly from `progress-record.md` (depends on T006)
-- [ ] T034 [US6] Run `quickstart.md` Scenarios 8 and 9 as a dry run, including a full session restart; fix any gaps found
+- [X] T031 [US6] Author the violation-history matching instruction in `.claude/skills/flutter-coach/SKILL.md`: on every evaluation, compare cited violations against `progress-record.md`'s Recurring Violation Patterns by pattern name; append a new entry or increment an existing one (depends on T028, T006)
+- [X] T032 [US6] Author the recurrence-callback instruction in `.claude/skills/flutter-coach/SKILL.md`: when a submission repeats an already-flagged pattern, explicitly reference the earlier occurrence in the feedback (depends on T031)
+- [X] T033 [US6] Author the progress-summary-on-request instruction in `.claude/skills/flutter-coach/SKILL.md`: when asked for current status, report `current_unlocked_slice`, per-slice status, and recurring patterns directly from `progress-record.md` (depends on T006)
+- [X] T034 [US6] Run `quickstart.md` Scenarios 8 and 9 as a dry run, including a full session restart; fix any gaps found
 
 **Checkpoint**: All 6 user stories independently functional; the full spec is covered.
 
@@ -163,10 +163,10 @@ description: "Task list for Flutter Integration Coaching Program"
 
 **Purpose**: Consistency and final validation across everything produced above.
 
-- [ ] T035 [P] Finalize `.claude/skills/flutter-coach/SKILL.md` YAML frontmatter (`name`, `description`, `argument-hint`, `user-invocable: true`) to match the convention used by `.claude/skills/speckit-plan/SKILL.md`
-- [ ] T036 [P] Proofread all 6 files in `specs/002-flutter-integration-coaching/briefs/` and `SKILL.md` for terminology consistency (slice names, entity names) against `data-model.md`
-- [ ] T037 [P] Cross-link `briefs/*.md` from `SKILL.md` and vice versa so the skill can always locate the right file for `current_unlocked_slice`
-- [ ] T038 Run the full `quickstart.md` (all 9 scenarios) end-to-end as a final dry run before a real trainee starts
+- [X] T035 [P] Finalize `.claude/skills/flutter-coach/SKILL.md` YAML frontmatter (`name`, `description`, `argument-hint`, `user-invocable: true`) to match the convention used by `.claude/skills/speckit-plan/SKILL.md`
+- [X] T036 [P] Proofread all 6 files in `specs/002-flutter-integration-coaching/briefs/` and `SKILL.md` for terminology consistency (slice names, entity names) against `data-model.md`
+- [X] T037 [P] Cross-link `briefs/*.md` from `SKILL.md` and vice versa so the skill can always locate the right file for `current_unlocked_slice`
+- [X] T038 Run the full `quickstart.md` (all 9 scenarios) end-to-end as a final dry run before a real trainee starts
 
 ---
 
