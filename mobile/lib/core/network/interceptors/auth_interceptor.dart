@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:src/core/network/di/api_config.dart';
 import 'package:src/core/storage/token_storage.dart';
-
-const _baseUrl = 'https://localhost:8000';
 
 class AuthInterceptor extends Interceptor {
   // We need the token storage to get and save tokens
@@ -14,7 +13,7 @@ class AuthInterceptor extends Interceptor {
   // The constructor takes the token storage and the dio instance as parameters
   // We initialize the _refreshDio with the base URL of the API
   AuthInterceptor({required this.tokenStorage, required this.dio})
-    : _refreshDio = Dio(BaseOptions(baseUrl: _baseUrl));
+    : _refreshDio = Dio(BaseOptions(baseUrl: apiBaseUrl));
 
   //............... The onRequest method is called before the request is sent ........................
   @override
@@ -48,11 +47,11 @@ class AuthInterceptor extends Interceptor {
       // We try to refresh the access token using the refresh token
       final response = await _refreshDio.post(
         '/api/auth/refresh',
-        data: {'refresh_token': refreshToken},
+        data: {'refreshToken': refreshToken},
       );
       // If the refresh is successful, we save the new tokens and retry the original request
-      final newAccessToken = response.data['access_token'];
-      final newRefreshToken = response.data['refresh_token'];
+      final newAccessToken = response.data['accessToken'];
+      final newRefreshToken = response.data['refreshToken'];
       await tokenStorage.saveTokens(
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
