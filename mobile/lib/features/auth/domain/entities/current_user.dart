@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+// Entity representing the currently logged-in user
 class CurrentUser extends Equatable {
   const CurrentUser({
     required this.id,
@@ -48,6 +49,7 @@ class CurrentUser extends Equatable {
     );
   }
 
+  // Equatable props for value comparison
   @override
   List<Object?> get props => [
     id,
