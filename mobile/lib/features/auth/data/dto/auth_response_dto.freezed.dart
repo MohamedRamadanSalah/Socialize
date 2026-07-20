@@ -15,7 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthResponseDto {
 
- String get accessToken; String get refreshToken; DateTime get accessTokenExpiresAt; CurrentUserDto get user;
+ String get accessToken; String get refreshToken; DateTime get accessTokenExpiresAt;// The user field represents the current user data transfer object (DTO)
+//associated with the authentication response.
+ CurrentUserDto get user;
 /// Create a copy of AuthResponseDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -227,6 +229,8 @@ class _AuthResponseDto implements AuthResponseDto {
 @override final  String accessToken;
 @override final  String refreshToken;
 @override final  DateTime accessTokenExpiresAt;
+// The user field represents the current user data transfer object (DTO)
+//associated with the authentication response.
 @override final  CurrentUserDto user;
 
 /// Create a copy of AuthResponseDto
