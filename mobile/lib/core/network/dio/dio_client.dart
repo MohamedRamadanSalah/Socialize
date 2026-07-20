@@ -6,7 +6,7 @@ import 'package:src/core/storage/token_storage.dart';
 
 part 'dio_client.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 Dio buildDio(Ref ref) {
   final TokenStorage tokenStorage = ref.watch(tokenStorageProvider);
   final dio = Dio(BaseOptions(baseUrl: apiBaseUrl));
