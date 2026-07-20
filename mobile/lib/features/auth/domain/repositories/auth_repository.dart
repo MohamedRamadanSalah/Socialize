@@ -6,7 +6,7 @@ import '../failures/auth_failure.dart';
 // Repository interface for authentication-related operations
 abstract class AuthRepository {
   // Registers a new user with the provided details
-  Future<Either<AuthFailure, CurrentUser>> register({
+  Future<Either<AuthFailure, CurrentUser>> register ({
     required String userName,
     required String email,
     required String password,
