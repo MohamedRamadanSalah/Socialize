@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:src/core/network/dio/dio_client.dart';
 import 'package:src/features/auth/data/dto/auth_response_dto.dart';
 import 'package:src/features/auth/data/dto/current_user_dto.dart';
+part 'auth_remote_data_source.g.dart';
 
 // This abstract class defines the contract for the authentication remote data source.
 abstract class AuthRemoteDataSource {
