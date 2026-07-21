@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:src/features/auth/presentation/screens/login_screen.dart';
 import 'package:src/features/auth/presentation/screens/register_screen.dart';
 import 'package:src/features/home/presentation/screens/home_screen.dart';
+import 'package:src/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:src/features/splash/presentation/screens/splash_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -14,6 +15,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: SplashScreen.path,
         name: SplashScreen.routeName,
         pageBuilder: (context, state) => _fadeTransitionPage(const SplashScreen(), state),
+      ),
+      GoRoute(
+        path: OnboardingScreen.path,
+        name: OnboardingScreen.routeName,
+        pageBuilder: (context, state) =>
+            _fadeTransitionPage(const OnboardingScreen(), state),
       ),
       GoRoute(
         path: LoginScreen.path,

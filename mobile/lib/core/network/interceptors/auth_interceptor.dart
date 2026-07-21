@@ -13,7 +13,14 @@ class AuthInterceptor extends Interceptor {
   // The constructor takes the token storage and the dio instance as parameters
   // We initialize the _refreshDio with the base URL of the API
   AuthInterceptor({required this.tokenStorage, required this.dio})
-    : _refreshDio = Dio(BaseOptions(baseUrl: apiBaseUrl));
+    : _refreshDio = Dio(
+        BaseOptions(
+          baseUrl: apiBaseUrl,
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+          sendTimeout: const Duration(seconds: 10),
+        ),
+      );
 
   //............... The onRequest method is called before the request is sent ........................
   @override

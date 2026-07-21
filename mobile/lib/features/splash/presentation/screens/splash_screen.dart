@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:src/core/theme/app_theme.dart';
+import 'package:src/core/widgets/animated_gradient_background.dart';
+import 'package:src/core/widgets/glow_orb.dart';
 import 'package:src/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:src/features/auth/presentation/screens/login_screen.dart';
 import 'package:src/features/home/presentation/screens/home_screen.dart';
+import 'package:src/features/onboarding/presentation/screens/onboarding_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -22,12 +24,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
   static const _minimumDisplay = Duration(milliseconds: 2600);
 
-  late final AnimationController _gradientController;
   late final AnimationController _entranceController;
   late final AnimationController _floatController;
 
-  late final Animation<Alignment> _gradientBegin;
-  late final Animation<Alignment> _gradientEnd;
   late final Animation<double> _logoOpacity;
   late final Animation<Offset> _logoOffset;
   late final Animation<double> _float;
@@ -35,19 +34,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void initState() {
     super.initState();
-
-    _gradientController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 6),
-    )..repeat(reverse: true);
-    _gradientBegin = AlignmentTween(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomLeft,
-    ).animate(CurvedAnimation(parent: _gradientController, curve: Curves.easeInOut));
-    _gradientEnd = AlignmentTween(
-      begin: Alignment.bottomRight,
-      end: Alignment.topRight,
-    ).animate(CurvedAnimation(parent: _gradientController, curve: Curves.easeInOut));
 
     _entranceController = AnimationController(
       vsync: this,
@@ -72,7 +58,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
 
     _entranceController.forward();
-    _startAuthFlow();
+    // Defer past the current build phase: checkAuthStatus() sets provider state
+    // synchronously, which Riverpod forbids while the widget tree is still building.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startAuthFlow());
   }
 
   Future<void> _startAuthFlow() async {
@@ -87,12 +75,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       orElse: () => false,
     );
 
-    context.go(isAuthenticated ? HomeScreen.path : LoginScreen.path);
+    context.go(isAuthenticated ? HomeScreen.path : OnboardingScreen.path);
   }
 
   @override
   void dispose() {
-    _gradientController.dispose();
     _entranceController.dispose();
     _floatController.dispose();
     super.dispose();
@@ -101,30 +88,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedBuilder(
-        animation: _gradientController,
-        builder: (context, child) {
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: _gradientBegin.value,
-                end: _gradientEnd.value,
-                colors: AppColors.splashGradient,
-              ),
-            ),
-            child: child,
-          );
-        },
+      body: AnimatedGradientBackground(
+        colors: AppColors.splashGradient,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            _GlowOrb(
-              alignment: const Alignment(-1.3, -1.2),
+            const GlowOrb(
+              alignment: Alignment(-1.3, -1.2),
               diameter: 260,
               color: AppColors.primaryContainer,
             ),
-            _GlowOrb(
-              alignment: const Alignment(1.3, 1.2),
+            const GlowOrb(
+              alignment: Alignment(1.3, 1.2),
               diameter: 320,
               color: AppColors.tertiaryContainer,
             ),
@@ -252,36 +227,6 @@ class _SyncingFooter extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _GlowOrb extends StatelessWidget {
-  const _GlowOrb({
-    required this.alignment,
-    required this.diameter,
-    required this.color,
-  });
-
-  final Alignment alignment;
-  final double diameter;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: alignment,
-      child: ImageFiltered(
-        imageFilter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-        child: Container(
-          width: diameter,
-          height: diameter,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color.withValues(alpha: 0.35),
-          ),
-        ),
-      ),
     );
   }
 }
