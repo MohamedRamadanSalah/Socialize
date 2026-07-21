@@ -47,7 +47,7 @@ services:
       Uploads__MaxImagesPerPost: "4"
       Uploads__MaxImageBytes: "5242880"
     ports:
-      - "8080:8080"
+      - "8081:8080"
     volumes:
       - uploads-data:/app/wwwroot/uploads
     depends_on:
