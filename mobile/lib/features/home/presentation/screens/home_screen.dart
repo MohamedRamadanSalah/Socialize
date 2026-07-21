@@ -6,6 +6,9 @@ import 'package:src/features/auth/presentation/controllers/auth_controller.dart'
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
+  static const path = '/home';
+  static const routeName = 'home';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);

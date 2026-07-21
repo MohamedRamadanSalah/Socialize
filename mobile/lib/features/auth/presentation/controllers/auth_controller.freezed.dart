@@ -272,12 +272,12 @@ _$AuthenticatedCopyWith<_Authenticated> get copyWith => __$AuthenticatedCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Authenticated&&const DeepCollectionEquality().equals(other.user, user));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Authenticated&&(identical(other.user, user) || other.user == user));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(user));
+int get hashCode => Object.hash(runtimeType,user);
 
 @override
 String toString() {
@@ -309,9 +309,9 @@ class __$AuthenticatedCopyWithImpl<$Res>
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? user = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? user = null,}) {
   return _then(_Authenticated(
-freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
+null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as CurrentUser,
   ));
 }
@@ -370,12 +370,12 @@ _$ErrorCopyWith<_Error> get copyWith => __$ErrorCopyWithImpl<_Error>(this, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Error&&const DeepCollectionEquality().equals(other.failure, failure));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Error&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(failure));
+int get hashCode => Object.hash(runtimeType,failure);
 
 @override
 String toString() {
@@ -394,7 +394,7 @@ $Res call({
 });
 
 
-
+$AuthFailureCopyWith<$Res> get failure;
 
 }
 /// @nodoc
@@ -407,14 +407,23 @@ class __$ErrorCopyWithImpl<$Res>
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? failure = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? failure = null,}) {
   return _then(_Error(
-freezed == failure ? _self.failure : failure // ignore: cast_nullable_to_non_nullable
+null == failure ? _self.failure : failure // ignore: cast_nullable_to_non_nullable
 as AuthFailure,
   ));
 }
 
-
+/// Create a copy of AuthState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$AuthFailureCopyWith<$Res> get failure {
+  
+  return $AuthFailureCopyWith<$Res>(_self.failure, (value) {
+    return _then(_self.copyWith(failure: value));
+  });
+}
 }
 
 // dart format on

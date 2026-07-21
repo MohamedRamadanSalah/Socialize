@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:src/core/theme/app_theme.dart';
 import 'package:src/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:src/features/auth/presentation/screens/login_screen.dart';
@@ -9,6 +10,9 @@ import 'package:src/features/home/presentation/screens/home_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
+
+  static const path = '/';
+  static const routeName = 'splash';
 
   @override
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
@@ -83,15 +87,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       orElse: () => false,
     );
 
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 500),
-        pageBuilder: (_, animation, _) => FadeTransition(
-          opacity: animation,
-          child: isAuthenticated ? const HomeScreen() : const LoginScreen(),
-        ),
-      ),
-    );
+    context.go(isAuthenticated ? HomeScreen.path : LoginScreen.path);
   }
 
   @override
