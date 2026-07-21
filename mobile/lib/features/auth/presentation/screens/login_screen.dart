@@ -47,7 +47,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-
     ref
         .read(authControllerProvider.notifier)
         .login(
@@ -68,7 +67,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         error: (failure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(_authFailureMessage(failure))));
+            ..showSnackBar(
+              SnackBar(content: Text(_authFailureMessage(failure))),
+            );
         },
       );
     });
@@ -110,7 +111,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
                   ),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -132,7 +134,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Text.rich(
                     TextSpan(
                       text: "Don't have an account? ",
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       children: [
                         TextSpan(
                           text: 'Create one',
